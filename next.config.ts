@@ -18,11 +18,23 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  devIndicators: {
-    allowedDevOrigins: [
-      '*.cloudworkstations.dev',
-    ],
-  },
+  // devIndicators: {
+  //   allowedDevOrigins: [
+  //     '*.cloudworkstations.dev',
+  //   ],
+  // },
 };
 
 export default nextConfig;
+
+
+// filepath: c:\Users\Sulaiman\Downloads\download (1)\next.config.js
+const withPWA = require('next-pwa')({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+});
+
+module.exports = withPWA({
+  // ...other Next.js config
+});

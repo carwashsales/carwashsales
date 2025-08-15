@@ -4,8 +4,12 @@ import { AppProvider } from '@/contexts/app-context';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'Siyara Wasla',
+  title: 'carWashSales',
   description: 'Car Wash Service Application',
+  icons: [
+    { rel: 'icon', url: '/icon-192x192.png' },
+    { rel: 'manifest', url: '/manifest.json' },
+  ],
 };
 
 export default function RootLayout({
@@ -32,3 +36,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+
