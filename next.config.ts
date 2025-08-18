@@ -1,6 +1,6 @@
 import type {NextConfig} from 'next';
 
-const repoName = 'carquicksales';
+const repoName = 'carwashsales';
 
 const isGithubActions = process.env.GITHUB_ACTIONS === 'true';
 
