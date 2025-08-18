@@ -1,19 +1,16 @@
 import type {NextConfig} from 'next';
 
+const repoName = 'carquicksales';
+
+const isGithubActions = process.env.GITHUB_ACTIONS === 'true';
+
 const nextConfig: NextConfig = {
   output: 'export',
-  basePath: '/QuickCarSales',
+  basePath: isGithubActions ? `/${repoName}` : '',
+  assetPrefix: isGithubActions ? `/${repoName}` : '',
   trailingSlash: true,
   images: {
     unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'placehold.co',
-        port: '',
-        pathname: '/**',
-      },
-    ],
   },
   typescript: {
     ignoreBuildErrors: true,
