@@ -17,13 +17,19 @@ jobs:
     steps:
       - name: Checkout your repository using git
         uses: actions/checkout@v4
-      - name: Install, build, and upload your site
-        uses: withastro/action-gh-pages@v1
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: out
-          NODE_VERSION: 20
-          PACKAGE_MANAGER: npm
-          BUILD_COMMAND: build
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install
+      - name: Build static site
+        run: npm run build
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
 
   deploy:
     needs: build
