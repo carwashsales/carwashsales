@@ -10,6 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Settings } from 'lucide-react';
+import type { Service } from '@/types';
 
 export function NewServiceForm() {
   const { 
@@ -28,6 +31,7 @@ export function NewServiceForm() {
   const [price, setPrice] = useState<number | string>('');
   const [commission, setCommission] = useState<number | string>('');
   const [customerContact, setCustomerContact] = useState('');
+   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'machine' | undefined>(undefined);
   const [errors, setErrors] = useState<{ [key: string]: boolean }>({});
 
 
@@ -41,6 +45,7 @@ export function NewServiceForm() {
     setPrice('');
     setCommission('');
     setCustomerContact('');
+    setPaymentMethod(undefined);
     setErrors({});
   }, []);
 
@@ -93,6 +98,10 @@ export function NewServiceForm() {
     return Object.keys(newErrors).length === 0;
   };
 
+   const handlePaymentMethodChange = (method: 'cash' | 'machine') => {
+    setPaymentMethod(prev => prev === method ? undefined : method);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -108,7 +117,7 @@ export function NewServiceForm() {
     const selectedStaff = staff.find(s => s.id === staffId);
     if (!selectedStaff) return;
     
-    const servicePayload: Parameters<typeof addService>[0] = {
+    const servicePayload: Omit<Service, 'id' | 'timestamp'> = {
       userId: user.uid,
       serviceType,
       carSize: carSize || null,
@@ -118,6 +127,7 @@ export function NewServiceForm() {
       staffNameEn: selectedStaff.nameEn,
       price: Number(price),
       commission: Number(commission),
+      paymentMethod,
     };
 
     if (customerContact) {
@@ -225,13 +235,24 @@ export function NewServiceForm() {
               <Input id="commission" value={commission} readOnly />
             </div>
             
-            {serviceConfig?.hasCoupon && (
-              <div className="flex items-center space-x-2 rtl:space-x-reverse pt-8 md:col-start-1">
-                <Checkbox id="free-wash-coupon" checked={useCoupon} onCheckedChange={(checked) => setUseCoupon(Boolean(checked))} />
-                <Label htmlFor="free-wash-coupon" className="cursor-pointer">{t('free-wash-coupon-label')}</Label>
+          <div className="flex items-center space-x-4 rtl:space-x-reverse pt-8 md:col-start-1">
+              {serviceConfig?.hasCoupon && (
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                  <Checkbox id="coupon-checkbox" checked={useCoupon} onCheckedChange={(checked) => setUseCoupon(Boolean(checked))} disabled={noStaff} />
+                  <Label htmlFor="coupon-checkbox" className="cursor-pointer">{t('coupon-label')}</Label>
+                </div>
+              )}
+               <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                <Checkbox id="payment-cash" checked={paymentMethod === 'cash'} onCheckedChange={() => handlePaymentMethodChange('cash')} disabled={noStaff} />
+                <Label htmlFor="payment-cash" className="cursor-pointer">{t('payment-method-cash')}</Label>
               </div>
-            )}
+              <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                <Checkbox id="payment-machine" checked={paymentMethod === 'machine'} onCheckedChange={() => handlePaymentMethodChange('machine')} disabled={noStaff} />
+                <Label htmlFor="payment-machine" className="cursor-pointer">{t('payment-method-machine')}</Label>
+              </div>
+            </div>
           </div>
+
           
           <div className="flex justify-end gap-4">
             <Button type="button" variant="outline" onClick={resetForm}>{t('clear-btn')}</Button>
