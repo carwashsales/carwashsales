@@ -56,7 +56,7 @@ export const SERVICE_TYPES: ServiceTypesConfig = {
     hasCoupon: false,
   },
   'ac-wash': {
-    prices: { default: { price: 15, commission: 4 } },
+    prices: { default: { price: 10, commission: 4 } },
     needsSize: false,
     hasCoupon: false,
   },
