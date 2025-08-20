@@ -17,6 +17,7 @@ export type Service = {
   commission: number;
   userId: string;
   customerContact?: string;
+  paymentMethod?: 'cash' | 'machine';
 };
 
 export type ServicePrice = {
