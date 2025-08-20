@@ -27,7 +27,6 @@ export const translations = {
     "staff-member-label": "الموظف",
     "select-staff-member": "اختر الموظف",
     "coupon-label": "كوبون",
-    "free-wash-coupon-label": "غسيل كامل مجاني",
     "price-label": "السعر (ريال)",
     "commission-label": "عمولة الموظف (ريال)",
     "customer-contact-label": "رقم العميل (اختياري)",
@@ -46,6 +45,7 @@ export const translations = {
     "table-header-staff": "الموظف",
     "table-header-price": "السعر",
     "table-header-commission": "العمولة",
+    "table-header-payment-method": "طريقة الدفع",
     "no-records-text": "لا توجد سجلات للتاريخ المحدد",
     "table-footer-totals": "المجموع",
     "settings-title": "الإعدادات",
@@ -108,7 +108,10 @@ export const translations = {
     "whatsapp-support-description": "انقر للتواصل المباشر معنا عبر واتساب لأي استفسار أو مساعدة.",
     "contact-whatsapp-btn": "تواصل عبر واتساب",
     "contact-dialog-description": "كيف تود التواصل معنا؟",
-    "contact-email-btn": "تواصل عبر البريد الإلكتروني"
+    "contact-email-btn": "تواصل عبر البريد الإلكتروني",
+    "no-staff-alert": "يرجى إضافة موظف واحد على الأقل من الإعدادات لتتمكن من إضافة خدمة جديدة.",
+    "payment-method-cash": "كاش",
+    "payment-method-machine": "شبكة"
   },
   en: {
     "app-title": "Car Wash Service",
@@ -138,7 +141,6 @@ export const translations = {
     "staff-member-label": "Staff Member",
     "select-staff-member": "Select staff member",
     "coupon-label": "Coupon",
-    "free-wash-coupon-label": "Free Whole Wash",
     "price-label": "Price (SAR)",
     "commission-label": "Staff Commission (SAR)",
     "customer-contact-label": "Customer Contact (Optional)",
@@ -157,6 +159,7 @@ export const translations = {
     "table-header-staff": "Staff",
     "table-header-price": "Price",
     "table-header-commission": "Commission",
+    "table-header-payment-method": "Payment Method",
     "no-records-text": "No records for selected date",
     "table-footer-totals": "Totals",
     "settings-title": "Settings",
@@ -219,7 +222,10 @@ export const translations = {
     "whatsapp-support-description": "Click to chat with us directly on WhatsApp for any questions or help.",
     "contact-whatsapp-btn": "Contact via WhatsApp",
     "contact-dialog-description": "How would you like to contact us?",
-    "contact-email-btn": "Contact via Email"
+    "contact-email-btn": "Contact via Email",
+     "no-staff-alert": "Please add at least one staff member from Settings to be able to add a new service.",
+    "payment-method-cash": "Cash",
+    "payment-method-machine": "Machine"
   }
 }
 
