@@ -60,11 +60,18 @@ export function DailyReport() {
     return t(key) || carSizeId;
   };
 
+ const getPaymentMethodName = (paymentMethod?: 'cash' | 'machine') => {
+    if (!paymentMethod) return '-';
+    const key = `payment-method-${paymentMethod}` as keyof typeof import('@/lib/translations').translations.en;
+    return t(key) || paymentMethod;
+  }
+
+  
   const exportToCsv = () => {
     const headers = [
       t('table-header-time'), t('table-header-service'), t('table-header-size'),
       t('table-header-contact'), t('table-header-staff'), t('table-header-price'), 
-      t('table-header-commission')
+      t('table-header-commission'), t('table-header-payment-method')
     ].join(',');
 
     const rows = services.map(s => [
@@ -74,7 +81,8 @@ export function DailyReport() {
       s.customerContact || '',
       language === 'ar' ? s.staffName : s.staffNameEn,
       s.price,
-      s.commission
+     s.commission,
+      getPaymentMethodName(s.paymentMethod)
     ].join(','));
 
     const csvContent = [headers, ...rows].join('\n');
@@ -151,6 +159,7 @@ export function DailyReport() {
                 <TableHead>{t('table-header-size')}</TableHead>
                 <TableHead>{t('table-header-contact')}</TableHead>
                 <TableHead>{t('table-header-staff')}</TableHead>
+                <TableHead>{t('table-header-payment-method')}</TableHead>
                 <TableHead className="text-right">{t('table-header-price')}</TableHead>
                 <TableHead className="text-right">{t('table-header-commission')}</TableHead>
               </TableRow>
@@ -164,19 +173,20 @@ export function DailyReport() {
                     <TableCell>{getCarSizeName(s.carSize)}</TableCell>
                     <TableCell>{s.customerContact || '-'}</TableCell>
                     <TableCell>{language === 'ar' ? s.staffName : s.staffNameEn}</TableCell>
+                     <TableCell>{getPaymentMethodName(s.paymentMethod)}</TableCell>
                     <TableCell className="text-right">{s.price}</TableCell>
                     <TableCell className="text-right">{s.commission}</TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center">{t('no-records-text')}</TableCell>
+                  <TableCell colSpan={8} className="text-center">{t('no-records-text')}</TableCell>
                 </TableRow>
               )}
             </TableBody>
              <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={5} className="font-bold">{t('table-footer-totals')}</TableCell>
+                  <TableCell colSpan={6} className="font-bold">{t('table-footer-totals')}</TableCell>
                   <TableCell className="text-right font-bold">{reportData.totalSales} {t('sar')}</TableCell>
                   <TableCell className="text-right font-bold">{reportData.totalCommissions} {t('sar')}</TableCell>
                 </TableRow>
