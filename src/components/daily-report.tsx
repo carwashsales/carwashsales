@@ -49,9 +49,10 @@ export function DailyReport() {
     return { totalSales, totalCommissions, staffCommissions };
   }, [services, language]);
 
-  const getServiceTypeName = (serviceTypeId: string) => {
-    const key = serviceTypeId as keyof typeof import('@/lib/translations').translations.en;
-    return t(key) || serviceTypeId;
+  const getServiceTypeName = (s: Service) => {
+    const key = s.serviceType as keyof typeof import('@/lib/translations').translations.en;
+    const baseName = t(key) || s.serviceType;
+    return s.waxAddOn ? `${baseName} + ${t('wax-add-on')}` : baseName;
   };
 
   const getCarSizeName = (carSizeId: string | null) => {
@@ -61,6 +62,7 @@ export function DailyReport() {
   };
 
  const getPaymentMethodName = (s: Service) => {
+    if (!s.isPaid) return t('payment-status-not-paid');
     if (s.hasCoupon) return t('coupon-label');
     if (!s.paymentMethod) return '-';
     const key = `payment-method-${s.paymentMethod}` as keyof typeof import('@/lib/translations').translations.en;
@@ -77,7 +79,7 @@ export function DailyReport() {
 
     const rows = services.map(s => [
       format(new Date(s.timestamp), 'p', { locale: language === 'ar' ? arSA : undefined }),
-      getServiceTypeName(s.serviceType),
+      getServiceTypeName(s),
       getCarSizeName(s.carSize),
       s.customerContact || '',
       language === 'ar' ? s.staffName : s.staffNameEn,
@@ -170,7 +172,7 @@ export function DailyReport() {
                 services.map((s: Service) => (
                   <TableRow key={s.id}>
                     <TableCell>{format(new Date(s.timestamp), 'p', { locale: language === 'ar' ? arSA : undefined })}</TableCell>
-                    <TableCell>{getServiceTypeName(s.serviceType)}</TableCell>
+                    <TableCell>{getServiceTypeName(s)}</TableCell>
                     <TableCell>{getCarSizeName(s.carSize)}</TableCell>
                     <TableCell>{s.customerContact || '-'}</TableCell>
                     <TableCell>{language === 'ar' ? s.staffName : s.staffNameEn}</TableCell>
