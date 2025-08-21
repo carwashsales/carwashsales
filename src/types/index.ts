@@ -9,7 +9,6 @@ export type Service = {
   timestamp: string;
   serviceType: string;
   carSize: string | null;
-  hasCoupon: boolean;
   staffId: string;
   staffName: string;
   staffNameEn: string;
@@ -17,6 +16,7 @@ export type Service = {
   commission: number;
   userId: string;
   customerContact?: string;
+  hasCoupon: boolean;
   paymentMethod?: 'cash' | 'machine';
 };
 
