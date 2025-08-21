@@ -60,10 +60,11 @@ export function DailyReport() {
     return t(key) || carSizeId;
   };
 
- const getPaymentMethodName = (paymentMethod?: 'cash' | 'machine') => {
-    if (!paymentMethod) return '-';
-    const key = `payment-method-${paymentMethod}` as keyof typeof import('@/lib/translations').translations.en;
-    return t(key) || paymentMethod;
+ const getPaymentMethodName = (s: Service) => {
+    if (s.hasCoupon) return t('coupon-label');
+    if (!s.paymentMethod) return '-';
+    const key = `payment-method-${s.paymentMethod}` as keyof typeof import('@/lib/translations').translations.en;
+    return t(key) || s.paymentMethod;
   }
 
   
@@ -82,7 +83,7 @@ export function DailyReport() {
       language === 'ar' ? s.staffName : s.staffNameEn,
       s.price,
      s.commission,
-      getPaymentMethodName(s.paymentMethod)
+      getPaymentMethodName(s)
     ].join(','));
 
     const csvContent = [headers, ...rows].join('\n');
@@ -173,7 +174,7 @@ export function DailyReport() {
                     <TableCell>{getCarSizeName(s.carSize)}</TableCell>
                     <TableCell>{s.customerContact || '-'}</TableCell>
                     <TableCell>{language === 'ar' ? s.staffName : s.staffNameEn}</TableCell>
-                     <TableCell>{getPaymentMethodName(s.paymentMethod)}</TableCell>
+                     <TableCell>{getPaymentMethodName(s)}</TableCell>
                     <TableCell className="text-right">{s.price}</TableCell>
                     <TableCell className="text-right">{s.commission}</TableCell>
                   </TableRow>
