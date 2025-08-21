@@ -2,7 +2,7 @@ export const translations = {
   ar: {
     "app-title": "خدمة غسيل السيارات",
     "new-service-tab-text": "خدمة جديدة",
-    "daily-report-tab-text": "التقرير اليومي",
+    "reports-tab-text": "التقارير",
     "support-tab-text": "الدعم",
     "new-service-title": "إضافة خدمة جديدة",
     "service-type-label": "نوع الخدمة",
@@ -114,7 +114,6 @@ export const translations = {
      "payment-method-machine": "شبكة",
     "wax-add-on": "إضافة شمع",
     "payment-status-not-paid": "غير مدفوع",
-    "customer-history-tab-text": "سجل العميل",
     "customer-history-title": "البحث في سجل العميل",
     "customer-history-description": "ابحث عن طريق رقم الاتصال لعرض سجل خدمات العميل.",
     "service-history-for": "سجل الخدمة لـ",
@@ -132,7 +131,7 @@ export const translations = {
   en: {
     "app-title": "Car Wash Service",
     "new-service-tab-text": "New Service",
-    "daily-report-tab-text": "Daily Report",
+    "reports-tab-text": "Reports",
     "support-tab-text": "Support",
     "new-service-title": "Add New Service",
     "service-type-label": "Service Type",
@@ -244,7 +243,6 @@ export const translations = {
     "payment-method-machine": "Machine",
     "wax-add-on": "Wax Add-on",
     "payment-status-not-paid": "Not Paid",
-    "customer-history-tab-text": "Customer History",
     "customer-history-title": "Search Customer History",
     "customer-history-description": "Search by contact number to view a customer's service history.",
     "service-history-for": "Service History for",
