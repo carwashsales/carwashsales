@@ -124,7 +124,10 @@ export const translations = {
     "table-header-date": "التاريخ",
     "whatsapp-standard-message": "شكرا لزيارتكم! يتبقى لكم {count} غسلات للحصول على غسلة مجانية. موقعنا: {location}",
     "whatsapp-free-wash-message": "تهانينا! لقد حصلت على غسلة كاملة مجانية في زيارتك القادمة. نتطلع لرؤيتك! موقعنا: {location}",
-    "whatsapp-reengagement-message": "لقد اشتقنا إليك! عد قريباً واحصل على خصم خاص على زيارتك القادمة. موقعنا: {location}"
+   "whatsapp-reengagement-message": "لقد اشتقنا إليك! عد قريباً واحصل على خصم خاص على زيارتك القادمة. موقعنا: {location}",
+    "show-all-customers-btn": "عرض كل العملاء",
+    "send-to-selected-btn": "إرسال للمحددين",
+    "whatsapp-bulk-message": "مرحباً! لدينا عروض جديدة ومميزة في مغسلة السيارات. نتطلع لزيارتكم قريباً!"
   },
   en: {
     "app-title": "Car Wash Service",
@@ -251,7 +254,10 @@ export const translations = {
     "table-header-date": "Date",
     "whatsapp-standard-message": "Thank you for your visit! You have {count} washes left to get a free one. Our location: {location}",
     "whatsapp-free-wash-message": "Congratulations! You've earned a free full wash on your next visit. We look forward to seeing you! Our location: {location}",
-    "whatsapp-reengagement-message": "We've missed you! Come back soon and get a special discount on your next visit. Our location: {location}"
+  "whatsapp-reengagement-message": "We've missed you! Come back soon and get a special discount on your next visit. Our location: {location}",
+    "show-all-customers-btn": "Show All Customers",
+    "send-to-selected-btn": "Send to Selected",
+    "whatsapp-bulk-message": "Hello! We have new and exciting offers at our car wash. We look forward to your visit soon!"
   }
 }
 
