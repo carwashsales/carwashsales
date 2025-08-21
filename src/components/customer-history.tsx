@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
 import { differenceInDays, format } from 'date-fns';
 import { arSA } from 'date-fns/locale';
 
@@ -27,26 +28,89 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
+
+interface CustomerData {
+  contact: string;
+  services: Service[];
+  fullWashCount: number;
+  lastVisitDays: number | null;
+}
+
 export function CustomerHistory() {
   const { t, language, allServices } = useApp();
   const [searchContact, setSearchContact] = useState('');
 
-  const customerServices = useMemo(() => {
+ const [showAll, setShowAll] = useState(false);
+  const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set());
+
+  const processedCustomers = useMemo((): CustomerData[] => {
+    const customerMap = new Map<string, Service[]>();
+    allServices.forEach(s => {
+      if (s.customerContact) {
+        if (!customerMap.has(s.customerContact)) {
+          customerMap.set(s.customerContact, []);
+        }
+        customerMap.get(s.customerContact)!.push(s);
+      }
+    });
+
+    return Array.from(customerMap.entries()).map(([contact, services]) => {
+      const sortedServices = services.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      const fullWashCount = sortedServices.filter(s => s.serviceType === 'full-wash' && s.isPaid).length;
+      const lastVisitDays = sortedServices.length > 0 ? differenceInDays(new Date(), new Date(sortedServices[0].timestamp)) : null;
+      return { contact, services: sortedServices, fullWashCount, lastVisitDays };
+    });
+  }, [allServices]);
+  
+  const filteredCustomers = useMemo(() => {
+    if (showAll) return processedCustomers;
     if (!searchContact) return [];
-    return allServices
-      .filter(s => s.customerContact === searchContact)
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-  }, [searchContact, allServices]);
+    return processedCustomers.filter(c => c.contact === searchContact);
+  }, [searchContact, showAll, processedCustomers]);
+  
+  const getMessage = (customer: CustomerData) => {
+    const locationUrl = 'https://share.google/UB0m98HiDNbftnJAc';
+    const remainingWashes = 6 - (customer.fullWashCount % 6);
+    
+    if (customer.lastVisitDays !== null && customer.lastVisitDays > 30) {
+      return t('whatsapp-reengagement-message').replace('{location}', locationUrl);
+    } else if (customer.fullWashCount > 0 && customer.fullWashCount % 6 === 0) {
+      return t('whatsapp-free-wash-message').replace('{location}', locationUrl);
+    } else {
+      return t('whatsapp-standard-message')
+        .replace('{count}', remainingWashes.toString())
+        .replace('{location}', locationUrl);
+    }
+  };
 
-  const fullWashCount = useMemo(() => {
-    return customerServices.filter(s => s.serviceType === 'full-wash' && s.isPaid).length;
-  }, [customerServices]);
+  const handleSendWhatsApp = (contact: string) => {
+    const customer = processedCustomers.find(c => c.contact === contact);
+    if (!customer) return;
+    const message = getMessage(customer);
+    const whatsappUrl = `https://wa.me/${contact}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+  
+  const handleSendToSelected = () => {
+    if (selectedCustomers.size === 0) return;
+    const message = t('whatsapp-bulk-message');
+    const contacts = Array.from(selectedCustomers).join(',');
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+  
+  const toggleCustomerSelection = (contact: string) => {
+    setSelectedCustomers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(contact)) {
+        newSet.delete(contact);
+      } else {
+        newSet.add(contact);
+      }
+      return newSet;
+    });
+  };
 
-  const lastVisitDays = useMemo(() => {
-    if (customerServices.length === 0) return null;
-    const lastVisitDate = new Date(customerServices[0].timestamp);
-    return differenceInDays(new Date(), lastVisitDate);
-  }, [customerServices]);
   
   const getServiceTypeName = (s: Service) => {
     const key = s.serviceType as keyof typeof import('@/lib/translations').translations.en;
@@ -60,24 +124,7 @@ export function CustomerHistory() {
     return t(key) || carSizeId;
   };
 
-  const handleSendWhatsApp = () => {
-    const locationUrl = 'https://share.google/UB0m98HiDNbftnJAc';
-    const remainingWashes = 6 - (fullWashCount % 6);
-    let message = '';
 
-    if (lastVisitDays !== null && lastVisitDays > 30) {
-      message = t('whatsapp-reengagement-message').replace('{location}', locationUrl);
-    } else if (fullWashCount > 0 && fullWashCount % 6 === 0) {
-      message = t('whatsapp-free-wash-message').replace('{location}', locationUrl);
-    } else {
-      message = t('whatsapp-standard-message')
-        .replace('{count}', remainingWashes.toString())
-        .replace('{location}', locationUrl);
-    }
-    
-    const whatsappUrl = `https://wa.me/${searchContact}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-  };
 
   return (
     <div className="space-y-6">
@@ -93,57 +140,89 @@ export function CustomerHistory() {
               <Input
                 id="customer-search"
                 value={searchContact}
-                onChange={(e) => setSearchContact(e.target.value)}
+                onChange={(e) => {
+                  setSearchContact(e.target.value);
+                  setShowAll(false);
+                }}
                 placeholder={t('customer-contact-placeholder')}
               />
             </div>
+            <Button onClick={() => { setShowAll(true); setSearchContact(''); }}>
+              {t('show-all-customers-btn')}
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {searchContact && (
+       {filteredCustomers.length > 0 && (
         <Card>
-          <CardHeader>
-            <div className="flex justify-between items-start">
-                <div>
-                    <CardTitle>{t('service-history-for')} {searchContact}</CardTitle>
-                    <CardDescription className="pt-2">
-                        {t('full-wash-count')}: {fullWashCount}
-                    </CardDescription>
-                </div>
-                <Button onClick={handleSendWhatsApp} disabled={customerServices.length === 0} className="bg-[#25D366] hover:bg-[#128C7E] text-white">
-                    <WhatsAppIcon />
-                    <span>{t('send-whatsapp-notification')}</span>
+         {showAll && (
+            <CardHeader>
+                <Button onClick={handleSendToSelected} disabled={selectedCustomers.size === 0} className="w-full sm:w-auto bg-[#25D366] hover:bg-[#128C7E] text-white">
+                  <WhatsAppIcon />
+                  <span>{t('send-to-selected-btn')} ({selectedCustomers.size})</span>
                 </Button>
-            </div>
-          </CardHeader>
+            </CardHeader>
+          )}
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('table-header-date')}</TableHead>
-                  <TableHead>{t('table-header-service')}</TableHead>
-                  <TableHead>{t('table-header-size')}</TableHead>
-                  <TableHead className="text-right">{t('table-header-price')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {customerServices.length > 0 ? (
-                  customerServices.map((s: Service) => (
-                    <TableRow key={s.id}>
-                      <TableCell>{format(new Date(s.timestamp), 'PPP', { locale: language === 'ar' ? arSA : undefined })}</TableCell>
-                      <TableCell>{getServiceTypeName(s)}</TableCell>
-                      <TableCell>{getCarSizeName(s.carSize)}</TableCell>
-                      <TableCell className="text-right">{s.price} {t('sar')}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center">{t('no-history-for-customer')}</TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+            {filteredCustomers.map(customer => (
+               <Card key={customer.contact} className="mb-6">
+                <CardHeader>
+                    <div className="flex justify-between items-start gap-4 flex-wrap">
+                       <div className="flex items-center gap-4">
+                        {showAll && (
+                          <Checkbox
+                            id={`select-${customer.contact}`}
+                            checked={selectedCustomers.has(customer.contact)}
+                            onCheckedChange={() => toggleCustomerSelection(customer.contact)}
+                          />
+                        )}
+                        <div>
+                            <CardTitle>{t('service-history-for')} {customer.contact}</CardTitle>
+                            <CardDescription className="pt-2">
+                                {t('full-wash-count')}: {customer.fullWashCount}
+                            </CardDescription>
+                        </div>
+                       </div>
+                        <Button onClick={() => handleSendWhatsApp(customer.contact)} disabled={customer.services.length === 0} className="bg-[#25D366] hover:bg-[#128C7E] text-white">
+                            <WhatsAppIcon />
+                            <span>{t('send-whatsapp-notification')}</span>
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                    <TableHeader>
+                        <TableRow>
+                        <TableHead>{t('table-header-date')}</TableHead>
+                        <TableHead>{t('table-header-service')}</TableHead>
+                        <TableHead>{t('table-header-size')}</TableHead>
+                        <TableHead className="text-right">{t('table-header-price')}</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {customer.services.length > 0 ? (
+                        customer.services.map((s: Service) => (
+                            <TableRow key={s.id}>
+                            <TableCell>{format(new Date(s.timestamp), 'PPP', { locale: language === 'ar' ? arSA : undefined })}</TableCell>
+                            <TableCell>{getServiceTypeName(s)}</TableCell>
+                            <TableCell>{getCarSizeName(s.carSize)}</TableCell>
+                            <TableCell className="text-right">{s.price} {t('sar')}</TableCell>
+                            </TableRow>
+                        ))
+                        ) : (
+                        <TableRow>
+                            <TableCell colSpan={4} className="text-center">{t('no-history-for-customer')}</TableCell>
+                        </TableRow>
+                        )}
+                    </TableBody>
+                    </Table>
+                </CardContent>
+                </Card>
+            ))}
+            {filteredCustomers.length === 0 && !showAll && (
+              <p className="text-center text-muted-foreground pt-4">{t('no-history-for-customer')}</p>
+            )}
           </CardContent>
         </Card>
       )}
