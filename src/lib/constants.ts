@@ -1,7 +1,7 @@
 import type { ServiceTypesConfig } from '@/types';
 
 export const SERVICE_TYPES: ServiceTypesConfig = {
-  'whole-wash': {
+  'full-wash': {
     prices: {
       small: { price: 20, commission: 8, couponCommission: 4 },
       medium: { price: 25, commission: 10, couponCommission: 5 },
@@ -30,7 +30,7 @@ export const SERVICE_TYPES: ServiceTypesConfig = {
     needsSize: true,
     hasCoupon: false,
   },
-  'spray-only': {
+  'water-only': {
     prices: { default: { price: 10, commission: 4 } },
     needsSize: false,
     hasCoupon: false,
