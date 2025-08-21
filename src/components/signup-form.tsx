@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import Link from 'next/link';
 
 interface SignUpFormProps {
   onSwitchView: () => void;
@@ -75,11 +76,18 @@ export function SignUpForm({ onSwitchView }: SignUpFormProps) {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center text-sm">
-          <p>{t('have-account-text')}</p>
-          <Button variant="link" onClick={onSwitchView} className="p-1">
-            {t('login-now-text')}
-          </Button>
+      <CardFooter className="flex-col items-center justify-center text-sm">
+           <div className='flex justify-center items-center'>
+            <p>{t('have-account-text')}</p>
+            <Button variant="link" onClick={onSwitchView} className="p-1">
+              {t('login-now-text')}
+            </Button>
+          </div>
+            <div className="mt-2 text-center text-xs text-muted-foreground">
+              <Link href="/privacy-policy" className="underline hover:text-primary">
+                Privacy Policy
+              </Link>
+            </div>
         </CardFooter>
       </Card>
     </main>
