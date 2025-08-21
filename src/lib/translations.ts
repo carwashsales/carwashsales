@@ -7,10 +7,10 @@ export const translations = {
     "new-service-title": "إضافة خدمة جديدة",
     "service-type-label": "نوع الخدمة",
     "select-service-type": "اختر نوع الخدمة",
-    "whole-wash": "غسيل كامل",
+    "full-wash": "غسيل كامل",
     "inside-only": "غسيل داخلي فقط",
     "outside-only": "غسيل خارجي فقط",
-    "spray-only": "رش فقط",
+    "water-only": "رش ماء فقط",
     "engine-wash-only": "غسيل المحرك فقط",
     "mirrors-only": "المرايات فقط",
     "carpets-covering": "تلبيس سجاد",
@@ -111,7 +111,9 @@ export const translations = {
     "contact-email-btn": "تواصل عبر البريد الإلكتروني",
     "no-staff-alert": "يرجى إضافة موظف واحد على الأقل من الإعدادات لتتمكن من إضافة خدمة جديدة.",
     "payment-method-cash": "كاش",
-    "payment-method-machine": "شبكة"
+     "payment-method-machine": "شبكة",
+    "wax-add-on": "إضافة شمع",
+    "payment-status-not-paid": "غير مدفوع"
   },
   en: {
     "app-title": "Car Wash Service",
@@ -121,10 +123,10 @@ export const translations = {
     "new-service-title": "Add New Service",
     "service-type-label": "Service Type",
     "select-service-type": "Select service type",
-    "whole-wash": "Whole Wash",
+    "full-wash": "Full Wash",
     "inside-only": "Inside Only",
     "outside-only": "Outside Only",
-    "spray-only": "Spray Only",
+    "water-only": "Water Only",
     "engine-wash-only": "Engine Wash Only",
     "mirrors-only": "Mirrors Only",
     "carpets-covering": "Carpets Covering",
@@ -225,7 +227,9 @@ export const translations = {
     "contact-email-btn": "Contact via Email",
      "no-staff-alert": "Please add at least one staff member from Settings to be able to add a new service.",
     "payment-method-cash": "Cash",
-    "payment-method-machine": "Machine"
+    "payment-method-machine": "Machine",
+    "wax-add-on": "Wax Add-on",
+    "payment-status-not-paid": "Not Paid"
   }
 }
 
