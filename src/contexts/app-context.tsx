@@ -229,11 +229,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
       const now = new Date();
-      const newService = {
+      const serviceToSave: { [key: string]: any } = {
         ...serviceData,
         timestamp: Timestamp.fromDate(now),
       };
-      const docRef = await addDoc(collection(db, 'services'), newService);
+     if (serviceToSave.paymentMethod === undefined) {
+        delete serviceToSave.paymentMethod;
+      }
+
+      const docRef = await addDoc(collection(db, 'services'), serviceToSave);
 
       const newServiceForState: Service = {
         ...serviceData,
