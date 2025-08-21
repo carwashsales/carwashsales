@@ -16,19 +16,16 @@ export function CarWashApp() {
       <Header />
       <main className="flex-1">
         <Tabs defaultValue="new-service" className="container mx-auto py-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="new-service">{t('new-service-tab-text')}</TabsTrigger>
-            <TabsTrigger value="daily-report">{t('daily-report-tab-text')}</TabsTrigger>
-             <TabsTrigger value="customer-history">{t('customer-history-tab-text')}</TabsTrigger>
+             <TabsTrigger value="reports">{t('reports-tab-text')}</TabsTrigger>
             <TabsTrigger value="support">{t('support-tab-text')}</TabsTrigger>
           </TabsList>
           <TabsContent value="new-service" className="space-y-6">
             <NewServiceForm />
           </TabsContent>
-          <TabsContent value="daily-report">
+          <TabsContent value="reports" className="space-y-6">
             <DailyReport />
-          </TabsContent>
-           <TabsContent value="customer-history">
             <CustomerHistory />
           </TabsContent>
           <TabsContent value="support">
