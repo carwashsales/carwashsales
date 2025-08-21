@@ -113,7 +113,18 @@ export const translations = {
     "payment-method-cash": "كاش",
      "payment-method-machine": "شبكة",
     "wax-add-on": "إضافة شمع",
-    "payment-status-not-paid": "غير مدفوع"
+    "payment-status-not-paid": "غير مدفوع",
+    "customer-history-tab-text": "سجل العميل",
+    "customer-history-title": "البحث في سجل العميل",
+    "customer-history-description": "ابحث عن طريق رقم الاتصال لعرض سجل خدمات العميل.",
+    "service-history-for": "سجل الخدمة لـ",
+    "full-wash-count": "عدد الغسلات الكاملة المدفوعة",
+    "send-whatsapp-notification": "إرسال إشعار واتساب",
+    "no-history-for-customer": "لا يوجد سجل لهذا العميل.",
+    "table-header-date": "التاريخ",
+    "whatsapp-standard-message": "شكرا لزيارتكم! يتبقى لكم {count} غسلات للحصول على غسلة مجانية. موقعنا: {location}",
+    "whatsapp-free-wash-message": "تهانينا! لقد حصلت على غسلة كاملة مجانية في زيارتك القادمة. نتطلع لرؤيتك! موقعنا: {location}",
+    "whatsapp-reengagement-message": "لقد اشتقنا إليك! عد قريباً واحصل على خصم خاص على زيارتك القادمة. موقعنا: {location}"
   },
   en: {
     "app-title": "Car Wash Service",
@@ -229,7 +240,18 @@ export const translations = {
     "payment-method-cash": "Cash",
     "payment-method-machine": "Machine",
     "wax-add-on": "Wax Add-on",
-    "payment-status-not-paid": "Not Paid"
+    "payment-status-not-paid": "Not Paid",
+    "customer-history-tab-text": "Customer History",
+    "customer-history-title": "Search Customer History",
+    "customer-history-description": "Search by contact number to view a customer's service history.",
+    "service-history-for": "Service History for",
+    "full-wash-count": "Paid Full Washes",
+    "send-whatsapp-notification": "Send WhatsApp Notification",
+    "no-history-for-customer": "No history for this customer.",
+    "table-header-date": "Date",
+    "whatsapp-standard-message": "Thank you for your visit! You have {count} washes left to get a free one. Our location: {location}",
+    "whatsapp-free-wash-message": "Congratulations! You've earned a free full wash on your next visit. We look forward to seeing you! Our location: {location}",
+    "whatsapp-reengagement-message": "We've missed you! Come back soon and get a special discount on your next visit. Our location: {location}"
   }
 }
 
