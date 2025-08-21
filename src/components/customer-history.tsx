@@ -28,7 +28,6 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
-
 interface CustomerData {
   contact: string;
   services: Service[];
@@ -39,8 +38,7 @@ interface CustomerData {
 export function CustomerHistory() {
   const { t, language, allServices } = useApp();
   const [searchContact, setSearchContact] = useState('');
-
- const [showAll, setShowAll] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set());
 
   const processedCustomers = useMemo((): CustomerData[] => {
@@ -111,7 +109,6 @@ export function CustomerHistory() {
     });
   };
 
-  
   const getServiceTypeName = (s: Service) => {
     const key = s.serviceType as keyof typeof import('@/lib/translations').translations.en;
     const baseName = t(key) || s.serviceType;
@@ -123,8 +120,6 @@ export function CustomerHistory() {
     const key = `${carSizeId}-car` as keyof typeof import('@/lib/translations').translations.en;
     return t(key) || carSizeId;
   };
-
-
 
   return (
     <div className="space-y-6">
@@ -154,9 +149,9 @@ export function CustomerHistory() {
         </CardContent>
       </Card>
 
-       {filteredCustomers.length > 0 && (
+      {filteredCustomers.length > 0 && (
         <Card>
-         {showAll && (
+          {showAll && (
             <CardHeader>
                 <Button onClick={handleSendToSelected} disabled={selectedCustomers.size === 0} className="w-full sm:w-auto bg-[#25D366] hover:bg-[#128C7E] text-white">
                   <WhatsAppIcon />
