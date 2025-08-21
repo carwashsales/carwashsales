@@ -18,6 +18,8 @@ export type Service = {
   customerContact?: string;
   hasCoupon: boolean;
   paymentMethod?: 'cash' | 'machine';
+  waxAddOn: boolean;
+  isPaid: boolean;
 };
 
 export type ServicePrice = {
