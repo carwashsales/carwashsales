@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import Link from 'next/link';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -108,6 +109,11 @@ export function LoginForm({ onSwitchView }: LoginFormProps) {
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
+               <div className="mt-4 text-center text-xs text-muted-foreground">
+                  <Link href="/privacy-policy" className="underline hover:text-primary">
+                    Privacy Policy
+                  </Link>
+                </div>
           </CardFooter>
         </Card>
       </main>
