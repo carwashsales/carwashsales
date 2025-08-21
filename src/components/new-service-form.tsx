@@ -14,6 +14,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Settings } from 'lucide-react';
 import type { Service } from '@/types';
 
+type PaymentType = 'coupon' | 'cash' | 'machine';
+
 export function NewServiceForm() {
   const { 
     t, 
@@ -27,26 +29,25 @@ export function NewServiceForm() {
   const [serviceType, setServiceType] = useState('');
   const [carSize, setCarSize] = useState('');
   const [staffId, setStaffId] = useState('');
-  const [useCoupon, setUseCoupon] = useState(false);
   const [price, setPrice] = useState<number | string>('');
   const [commission, setCommission] = useState<number | string>('');
   const [customerContact, setCustomerContact] = useState('');
-   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'machine' | undefined>(undefined);
+  const [paymentType, setPaymentType] = useState<PaymentType | undefined>(undefined);
   const [errors, setErrors] = useState<{ [key: string]: boolean }>({});
 
 
   const serviceConfig = serviceType ? SERVICE_TYPES[serviceType] : null;
   const noStaff = staff.length === 0;
 
+  const useCoupon = paymentType === 'coupon';
   const resetForm = useCallback(() => {
     setServiceType('');
     setCarSize('');
     setStaffId('');
-    setUseCoupon(false);
     setPrice('');
     setCommission('');
     setCustomerContact('');
-    setPaymentMethod(undefined);
+    setPaymentType(undefined);
     setErrors({});
   }, []);
 
@@ -55,7 +56,7 @@ export function NewServiceForm() {
       setPrice('');
       setCommission('');
       setCarSize('');
-      setUseCoupon(false);
+      setPaymentType(undefined);
       return;
     }
 
@@ -64,7 +65,9 @@ export function NewServiceForm() {
     }
 
     if (!serviceConfig.hasCoupon) {
-      setUseCoupon(false);
+      if (paymentType === 'coupon') {
+        setPaymentType(undefined);
+      }
     }
 
     const priceKey = serviceConfig.needsSize ? carSize : 'default';
@@ -87,7 +90,7 @@ export function NewServiceForm() {
       setPrice('');
       setCommission('');
     }
-  }, [serviceType, carSize, useCoupon, serviceConfig]);
+  }, [serviceType, carSize, paymentType, serviceConfig, useCoupon]);
 
   const validateForm = () => {
     const newErrors: { [key: string]: boolean } = {};
@@ -99,8 +102,8 @@ export function NewServiceForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-   const handlePaymentMethodChange = (method: 'cash' | 'machine') => {
-    setPaymentMethod(prev => prev === method ? undefined : method);
+    const handlePaymentTypeChange = (method: PaymentType) => {
+    setPaymentType(prev => prev === method ? undefined : method);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -124,13 +127,13 @@ export function NewServiceForm() {
       userId: user.uid,
       serviceType,
       carSize: carSize || null,
-      hasCoupon: useCoupon,
       staffId: selectedStaff.id,
       staffName: selectedStaff.name,
       staffNameEn: selectedStaff.nameEn,
       price: Number(price),
       commission: Number(commission),
-      paymentMethod,
+      hasCoupon: paymentType === 'coupon',
+      paymentMethod: paymentType !== 'coupon' ? paymentType : undefined,
     };
 
     if (customerContact) {
@@ -255,16 +258,16 @@ export function NewServiceForm() {
           <div className="flex items-center space-x-4 rtl:space-x-reverse pt-8 md:col-start-1">
               {serviceConfig?.hasCoupon && (
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                  <Checkbox id="free-wash-coupon" checked={useCoupon} onCheckedChange={(checked) => setUseCoupon(Boolean(checked))} disabled={noStaff} />
-                  <Label htmlFor="coupon-checkbox" className="cursor-pointer">{t('coupon-label')}</Label>
+                <Checkbox id="payment-coupon" checked={paymentType === 'coupon'} onCheckedChange={() => handlePaymentTypeChange('coupon')} disabled={noStaff} />
+                  <Label htmlFor="payment-coupon" className="cursor-pointer">{t('coupon-label')}</Label>
                 </div>
               )}
                <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                <Checkbox id="payment-cash" checked={paymentMethod === 'cash'} onCheckedChange={() => handlePaymentMethodChange('cash')} disabled={noStaff} />
+               <Checkbox id="payment-cash" checked={paymentType === 'cash'} onCheckedChange={() => handlePaymentTypeChange('cash')} disabled={noStaff} />
                 <Label htmlFor="payment-cash" className="cursor-pointer">{t('payment-method-cash')}</Label>
               </div>
               <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                <Checkbox id="payment-machine" checked={paymentMethod === 'machine'} onCheckedChange={() => handlePaymentMethodChange('machine')} disabled={noStaff} />
+                <Checkbox id="payment-machine" checked={paymentType === 'machine'} onCheckedChange={() => handlePaymentTypeChange('machine')} disabled={noStaff} />
                 <Label htmlFor="payment-machine" className="cursor-pointer">{t('payment-method-machine')}</Label>
               </div>
             </div>
