@@ -14,7 +14,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Settings } from 'lucide-react';
 import type { Service } from '@/types';
 
-type PaymentType = 'coupon' | 'cash' | 'machine';
+type PaymentType = 'coupon' | 'cash' | 'machine' | 'not-paid';
 
 export function NewServiceForm() {
   const { 
@@ -33,13 +33,16 @@ export function NewServiceForm() {
   const [commission, setCommission] = useState<number | string>('');
   const [customerContact, setCustomerContact] = useState('');
   const [paymentType, setPaymentType] = useState<PaymentType | undefined>(undefined);
+  const [waxAddOn, setWaxAddOn] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: boolean }>({});
 
+   const WAX_PRICE = 5;
+  const WAX_COMMISSION = 2;
 
   const serviceConfig = serviceType ? SERVICE_TYPES[serviceType] : null;
   const noStaff = staff.length === 0;
 
-  const useCoupon = paymentType === 'coupon';
+   const showWaxOption = serviceType === 'full-wash' || serviceType === 'outside-only';
   const resetForm = useCallback(() => {
     setServiceType('');
     setCarSize('');
@@ -48,6 +51,7 @@ export function NewServiceForm() {
     setCommission('');
     setCustomerContact('');
     setPaymentType(undefined);
+    setWaxAddOn(false);
     setErrors({});
   }, []);
 
@@ -57,6 +61,7 @@ export function NewServiceForm() {
       setCommission('');
       setCarSize('');
       setPaymentType(undefined);
+      setWaxAddOn(false);
       return;
     }
 
@@ -64,10 +69,12 @@ export function NewServiceForm() {
       setCarSize('');
     }
 
-    if (!serviceConfig.hasCoupon) {
-      if (paymentType === 'coupon') {
+   if (!serviceConfig.hasCoupon && paymentType === 'coupon') {
         setPaymentType(undefined);
-      }
+       }
+    
+    if (!showWaxOption) {
+      setWaxAddOn(false);
     }
 
     const priceKey = serviceConfig.needsSize ? carSize : 'default';
@@ -79,24 +86,36 @@ export function NewServiceForm() {
 
     const priceObj = serviceConfig.prices[priceKey];
     if (priceObj) {
-      if (useCoupon && serviceConfig.hasCoupon && priceObj.couponCommission !== undefined) {
-        setPrice(0);
-        setCommission(priceObj.couponCommission);
+      let currentPrice = 0;
+      let currentCommission = 0;
+
+      if (paymentType === 'coupon' && serviceConfig.hasCoupon && priceObj.couponCommission !== undefined) {
+        currentPrice = 0;
+        currentCommission = priceObj.couponCommission;
       } else {
-        setPrice(priceObj.price);
-        setCommission(priceObj.commission);
+       currentPrice = priceObj.price;
+        currentCommission = priceObj.commission;
       }
+
+      if (waxAddOn && showWaxOption) {
+        currentPrice += WAX_PRICE;
+        currentCommission += WAX_COMMISSION;
+      }
+      
+      setPrice(currentPrice);
+      setCommission(currentCommission);
     } else {
       setPrice('');
       setCommission('');
     }
-  }, [serviceType, carSize, paymentType, serviceConfig, useCoupon]);
+   }, [serviceType, carSize, paymentType, serviceConfig, waxAddOn, showWaxOption]);
 
   const validateForm = () => {
     const newErrors: { [key: string]: boolean } = {};
     if (!serviceType) newErrors.serviceType = true;
     if (serviceConfig?.needsSize && !carSize) newErrors.carSize = true;
     if (!staffId) newErrors.staffId = true;
+    if (!paymentType) newErrors.paymentType = true;
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -122,6 +141,8 @@ export function NewServiceForm() {
 
     const selectedStaff = staff.find(s => s.id === staffId);
     if (!selectedStaff) return;
+     
+    const isPaid = paymentType !== 'not-paid';
     
     const servicePayload: Omit<Service, 'id' | 'timestamp'> = {
       userId: user.uid,
@@ -130,10 +151,12 @@ export function NewServiceForm() {
       staffId: selectedStaff.id,
       staffName: selectedStaff.name,
       staffNameEn: selectedStaff.nameEn,
-      price: Number(price),
+      price: isPaid ? Number(price) : 0,
       commission: Number(commission),
       hasCoupon: paymentType === 'coupon',
-      paymentMethod: paymentType !== 'coupon' ? paymentType : undefined,
+      paymentMethod: paymentType !== 'coupon' && isPaid ? paymentType as 'cash' | 'machine' : undefined,
+      waxAddOn,
+      isPaid,
     };
 
     if (customerContact) {
@@ -247,7 +270,7 @@ export function NewServiceForm() {
             
             <div className="space-y-2">
               <Label htmlFor="price">{t('price-label')}</Label>
-              <Input id="price" value={price} readOnly disabled={noStaff} />
+               <Input id="price" value={paymentType === 'not-paid' ? 0 : price} readOnly disabled={noStaff} />
             </div>
             
             <div className="space-y-2">
@@ -255,21 +278,39 @@ export function NewServiceForm() {
               <Input id="commission" value={commission} readOnly disabled={noStaff} />
             </div>
             
-          <div className="flex items-center space-x-4 rtl:space-x-reverse pt-8 md:col-start-1">
+        
+             {showWaxOption && (
+                <div className="flex items-center space-x-2 rtl:space-x-reverse pt-8">
+                  <Checkbox 
+                    id="wax-add-on" 
+                    checked={waxAddOn} 
+                    onCheckedChange={(checked) => setWaxAddOn(Boolean(checked))} 
+                    disabled={noStaff} 
+                  />
+                  <Label htmlFor="wax-add-on" className="cursor-pointer">{t('wax-add-on')} (+{WAX_PRICE} {t('sar')})</Label>
+                </div>
+              )}
+            
+            <div className="md:col-span-3 flex flex-wrap items-center gap-x-6 gap-y-2 pt-4 border-t" data-invalid={errors.paymentType}>
+              <Label className="font-bold">{t('table-header-payment-method')}:</Label>
               {serviceConfig?.hasCoupon && (
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                <Checkbox id="payment-coupon" checked={paymentType === 'coupon'} onCheckedChange={() => handlePaymentTypeChange('coupon')} disabled={noStaff} />
+              <Checkbox id="payment-coupon" checked={paymentType === 'coupon'} onCheckedChange={() => handlePaymentTypeChange('coupon')} disabled={noStaff || paymentType === 'not-paid'} />
                   <Label htmlFor="payment-coupon" className="cursor-pointer">{t('coupon-label')}</Label>
                 </div>
               )}
                <div className="flex items-center space-x-2 rtl:space-x-reverse">
-               <Checkbox id="payment-cash" checked={paymentType === 'cash'} onCheckedChange={() => handlePaymentTypeChange('cash')} disabled={noStaff} />
+               <Checkbox id="payment-cash" checked={paymentType === 'cash'} onCheckedChange={() => handlePaymentTypeChange('cash')} disabled={noStaff || paymentType === 'not-paid'} />
                 <Label htmlFor="payment-cash" className="cursor-pointer">{t('payment-method-cash')}</Label>
               </div>
               <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                <Checkbox id="payment-machine" checked={paymentType === 'machine'} onCheckedChange={() => handlePaymentTypeChange('machine')} disabled={noStaff} />
+                <Checkbox id="payment-machine" checked={paymentType === 'machine'} onCheckedChange={() => handlePaymentTypeChange('machine')} disabled={noStaff || paymentType === 'not-paid'} />
                 <Label htmlFor="payment-machine" className="cursor-pointer">{t('payment-method-machine')}</Label>
               </div>
+                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <Checkbox id="payment-not-paid" checked={paymentType === 'not-paid'} onCheckedChange={() => handlePaymentTypeChange('not-paid')} disabled={noStaff} />
+                    <Label htmlFor="payment-not-paid" className="cursor-pointer">{t('payment-status-not-paid')}</Label>
+                  </div>
             </div>
           </div>
 
