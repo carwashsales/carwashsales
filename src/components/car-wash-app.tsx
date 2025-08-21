@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NewServiceForm } from '@/components/new-service-form';
 import { DailyReport } from '@/components/daily-report';
 import { SupportTab } from '@/components/support-tab';
+import { CustomerHistory } from '@/components/customer-history';
 
 export function CarWashApp() {
   const { t } = useApp();
@@ -15,9 +16,10 @@ export function CarWashApp() {
       <Header />
       <main className="flex-1">
         <Tabs defaultValue="new-service" className="container mx-auto py-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="new-service">{t('new-service-tab-text')}</TabsTrigger>
             <TabsTrigger value="daily-report">{t('daily-report-tab-text')}</TabsTrigger>
+             <TabsTrigger value="customer-history">{t('customer-history-tab-text')}</TabsTrigger>
             <TabsTrigger value="support">{t('support-tab-text')}</TabsTrigger>
           </TabsList>
           <TabsContent value="new-service" className="space-y-6">
@@ -25,6 +27,9 @@ export function CarWashApp() {
           </TabsContent>
           <TabsContent value="daily-report">
             <DailyReport />
+          </TabsContent>
+           <TabsContent value="customer-history">
+            <CustomerHistory />
           </TabsContent>
           <TabsContent value="support">
             <SupportTab />
