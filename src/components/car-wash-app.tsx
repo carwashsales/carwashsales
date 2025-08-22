@@ -15,10 +15,10 @@ export function CarWashApp() {
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        <Tabs defaultValue="new-service" className="container mx-auto py-6">
+        <Tabs defaultValue="reports" className="container mx-auto py-6">
           <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="reports">{t('reports-tab-text')}</TabsTrigger>
             <TabsTrigger value="new-service">{t('new-service-tab-text')}</TabsTrigger>
-             <TabsTrigger value="reports">{t('reports-tab-text')}</TabsTrigger>
             <TabsTrigger value="support">{t('support-tab-text')}</TabsTrigger>
           </TabsList>
           <TabsContent value="new-service" className="space-y-6">
