@@ -1,3 +1,4 @@
+
 'use client';
 
 import { ArrowLeft } from 'lucide-react';
@@ -13,7 +14,7 @@ export function SubPageHeader() {
     <header className="sticky top-0 z-10 bg-card/80 backdrop-blur-sm shadow-sm">
       <div className="container mx-auto flex items-center justify-between p-4">
         <Link href="/" legacyBehavior passHref>
-          <Button variant="outline" asChild>
+          <Button asChild>
             <a>
               <ArrowLeft className="h-4 w-4" />
               <span>{t('back-to-app-btn')}</span>
