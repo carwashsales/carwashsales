@@ -2,6 +2,7 @@ export type Staff = {
   id: string;
   name: string;
   nameEn: string;
+  userId: string;
 };
 
 export type Service = {
@@ -29,13 +30,18 @@ export type ServicePrice = {
 };
 
 export type ServiceConfig = {
+  id: string;
+  name: string;
+  nameAr: string;
+  nameEn: string;
   prices: {
     [key: string]: ServicePrice;
   };
   needsSize: boolean;
   hasCoupon: boolean;
+  userId: string;
 };
 
 export type ServiceTypesConfig = {
-  [key:string]: ServiceConfig;
+  [key:string]: Omit<ServiceConfig, 'id' | 'name' | 'userId' | 'nameAr' | 'nameEn'>;
 };
