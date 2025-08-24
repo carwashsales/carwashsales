@@ -33,20 +33,19 @@ function AppContent({ children }: { children: React.ReactNode }) {
   };
 
   if (!isAuthenticated) {
-     // Check if the current page is the privacy policy
+     // Allow access to privacy policy even when not logged in
     if (typeof window !== 'undefined' && window.location.pathname.includes('/privacy-policy')) {
       return <>{children}</>;
     }
     return renderAuth();
   }
 
-  // If authenticated, show the main app layout.
-  // The 'children' will be the specific page content (e.g., settings).
-  // The main app dashboard is now implicitly part of the layout for authenticated users.
-   if (typeof window !== 'undefined' && window.location.pathname.includes('/settings')) {
+  // If authenticated, allow access to settings or other pages
+   if (typeof window !== 'undefined' && (window.location.pathname.includes('/settings') || window.location.pathname.includes('/privacy-policy'))) {
      return <>{children}</>;
    }
 
+  // For any other authenticated route, show the main dashboard
   return <CarWashApp />;
 }
 
