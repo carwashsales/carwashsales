@@ -40,12 +40,12 @@ export interface AppContextType {
   logout: () => void;
   services: Service[];
   allServices: Service[];
+  loadAllServices: () => Promise<void>;
   staff: Staff[];
   addStaff: (name: string, nameEn: string) => void;
   removeStaff: (id: string) => void;
   addService: (service: Omit<Service, 'id' | 'timestamp'>) => void;
   loadServicesForDate: (date: Date) => void;
-  submitSupportTicket: (subject: string, message: string, email?: string) => void;
   isLoading: boolean;
   isInitialized: boolean;
   serviceConfigs: ServiceConfig[];
@@ -80,7 +80,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const t = useCallback((key: keyof typeof translations.en): string => {
     const translation = translations[language][key] || translations.en[key];
     if (!translation) {
-      // Fallback for dynamic keys that might not be in translations
       const keyStr = key as string;
       return keyStr.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
@@ -127,7 +126,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
          const configs = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...(doc.data() as Omit<ServiceConfig, 'id'>),
-        }));
+        })).sort((a, b) => a.name.localeCompare(b.name));
         setServiceConfigs(configs);
         return configs;
       }
@@ -209,7 +208,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      // onAuthStateChanged will handle the rest of the setup for the new user.
       toast({
         title: t('signup-success-title'),
         description: t('signup-success-description'),
@@ -298,12 +296,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loadAllServices = useCallback(async (currentUserId: string): Promise<Service[]> => {
+  const loadAllServices = useCallback(async () => {
+    if (!user) return;
+    showLoading();
     try {
       const servicesCol = collection(db, 'services');
       const q = query(
         servicesCol,
-        where('userId', '==', currentUserId),
+        where('userId', '==', user.uid),
         orderBy('timestamp', 'desc')
       );
       const querySnapshot = await getDocs(q);
@@ -316,14 +316,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
         } as Service;
       });
       setAllServices(allServicesData);
-      return allServicesData;
+      
+      const todayServices = allServicesData
+        .filter(service => isSameDay(new Date(service.timestamp), new Date()))
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      setServices(todayServices);
+
     } catch (error) {
       console.error('Error loading all services: ', error);
       toast({ title: 'Failed to load services data.', variant: 'destructive' });
       setAllServices([]);
-      return [];
+    } finally {
+      hideLoading();
     }
-  }, [toast]);
+  }, [toast, user]);
 
   const loadServicesForDate = useCallback((date: Date) => {
     const dailyServices = allServices
@@ -358,10 +364,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const updatedAllServices = [newServiceForState, ...allServices];
       setAllServices(updatedAllServices);
 
-      const dailyServices = updatedAllServices
-        .filter(service => isSameDay(new Date(service.timestamp), new Date()))
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      setServices(dailyServices);
+      if(isSameDay(new Date(newServiceForState.timestamp), new Date())) {
+        setServices(prev => [newServiceForState, ...prev].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+      }
 
       toast({ title: t('service-saved') });
     } catch (error)
@@ -372,40 +377,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
       hideLoading();
     }
   };
-
-  const submitSupportTicket = async (subject: string, message: string, email?: string) => {
-    if (!user && !email) {
-      toast({ title: t('login-required-error'), variant: 'destructive' });
-      return;
-    }
-    showLoading();
-    try {
-      await addDoc(collection(db, 'supportTickets'), {
-        userId: user ? user.uid : 'anonymous',
-        email: user ? user.email : email,
-        subject,
-        message,
-        timestamp: Timestamp.now(),
-        status: 'new',
-      });
-      toast({ title: t('message-sent-success') });
-    } catch (error) {
-      console.error('Error submitting support ticket:', error);
-      toast({ title: t('message-sent-failed'), variant: 'destructive' });
-    } finally {
-      hideLoading();
-    }
-  };
   
   const loadInitialData = useCallback(async (currentUser: User) => {
-    await loadStaff(currentUser.uid);
-    await loadServiceConfigs(currentUser.uid);
-    const loadedServices = await loadAllServices(currentUser.uid);
-    const todayServices = loadedServices
-      .filter(service => isSameDay(new Date(service.timestamp), new Date()))
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    setServices(todayServices);
-  }, [loadStaff, loadServiceConfigs, loadAllServices]);
+    showLoading();
+    try {
+        await Promise.all([
+            loadStaff(currentUser.uid),
+            loadServiceConfigs(currentUser.uid),
+        ]);
+        // Only load today's services initially
+        const servicesCol = collection(db, 'services');
+        const today = new Date();
+        const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+
+        const q = query(
+            servicesCol,
+            where('userId', '==', currentUser.uid),
+            where('timestamp', '>=', startOfDay),
+            where('timestamp', '<=', endOfDay),
+            orderBy('timestamp', 'desc')
+        );
+        const querySnapshot = await getDocs(q);
+        const todayServicesData = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+            id: doc.id,
+            ...data,
+            timestamp: (data.timestamp as Timestamp).toDate().toISOString(),
+            } as Service;
+        });
+        setServices(todayServicesData);
+
+    } catch (e) {
+        console.error("Failed to load initial data", e);
+        toast({ title: 'Failed to load initial data', variant: 'destructive' });
+    } finally {
+        hideLoading();
+    }
+  }, [loadStaff, loadServiceConfigs, toast]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -443,12 +453,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     logout,
     services,
     allServices,
+    loadAllServices,
     staff,
     addStaff,
     removeStaff,
     addService,
     loadServicesForDate,
-    submitSupportTicket,
     isLoading,
     isInitialized,
     serviceConfigs,
