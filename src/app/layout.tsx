@@ -15,13 +15,19 @@ function AppContent({ children }: { children: React.ReactNode }) {
   const context = useContext(AppContext);
   const [authView, setAuthView] = useState<'login' | 'signup'>('login');
 
+  if (typeof window !== 'undefined') {
+    console.log('Current Path:', window.location.pathname);
+  }
+
   if (!context) {
+    console.log('Context is missing, showing loading overlay.');
     return <LoadingOverlay />;
   }
 
   const { isInitialized, isLoading, isAuthenticated } = context;
 
   if (!isInitialized || isLoading) {
+    console.log('App not initialized or is loading, showing loading overlay.');
     return <LoadingOverlay />;
   }
 
@@ -33,19 +39,25 @@ function AppContent({ children }: { children: React.ReactNode }) {
   };
 
   if (!isAuthenticated) {
-     // Allow access to privacy policy even when not logged in
+    console.log('User not authenticated.');
+    // Allow access to privacy policy even when not logged in
     if (typeof window !== 'undefined' && window.location.pathname.includes('/privacy-policy')) {
+      console.log('Rendering privacy policy for unauthenticated user.');
       return <>{children}</>;
     }
+    console.log('Rendering auth forms.');
     return renderAuth();
   }
 
+  console.log('User is authenticated.');
   // If authenticated, allow access to settings or other pages
    if (typeof window !== 'undefined' && (window.location.pathname.includes('/settings') || window.location.pathname.includes('/privacy-policy'))) {
+     console.log('Rendering settings or privacy policy page.');
      return <>{children}</>;
    }
 
   // For any other authenticated route, show the main dashboard
+  console.log('Rendering main CarWashApp.');
   return <CarWashApp />;
 }
 
