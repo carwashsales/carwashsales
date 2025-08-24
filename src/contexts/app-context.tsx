@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { createContext, useState, useEffect, useCallback } from 'react';
 import { translations, type Language } from '@/lib/translations';
-import type { Service, Staff } from '@/types';
+import type { Service, Staff, ServiceConfig } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db } from '@/lib/firebase';
 import {
@@ -23,8 +23,11 @@ import {
   deleteDoc,
   doc,
   orderBy,
+  writeBatch,
+  updateDoc,
 } from 'firebase/firestore';
 import { isSameDay } from 'date-fns';
+import { SERVICE_TYPES } from '@/lib/constants';
 
 export interface AppContextType {
   language: Language;
@@ -45,6 +48,10 @@ export interface AppContextType {
   submitSupportTicket: (subject: string, message: string, email?: string) => void;
   isLoading: boolean;
   isInitialized: boolean;
+  serviceConfigs: ServiceConfig[];
+  addServiceConfig: (config: Omit<ServiceConfig, 'id' | 'userId'>) => Promise<void>;
+  updateServiceConfig: (config: ServiceConfig) => Promise<void>;
+  removeServiceConfig: (id: string) => Promise<void>;
 }
 
 export const AppContext = createContext<AppContextType | null>(null);
@@ -55,7 +62,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [services, setServices] = useState<Service[]>([]);
   const [allServices, setAllServices] = useState<Service[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [serviceConfigs, setServiceConfigs] = useState<ServiceConfig[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const { toast } = useToast();
 
@@ -70,11 +78,112 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const t = useCallback((key: keyof typeof translations.en): string => {
-    return translations[language][key] || translations.en[key];
+    const translation = translations[language][key] || translations.en[key];
+    if (!translation) {
+      // Fallback for dynamic keys that might not be in translations
+      const keyStr = key as string;
+      return keyStr.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+    return translation;
   }, [language]);
 
   const showLoading = () => setIsLoading(true);
   const hideLoading = () => setIsLoading(false);
+
+  const loadServiceConfigs = useCallback(async (currentUserId: string): Promise<ServiceConfig[]> => {
+    try {
+      const configsCol = collection(db, 'service_configs');
+      const q = query(configsCol, where('userId', '==', currentUserId));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        const batch = writeBatch(db);
+        const enTranslations = translations.en;
+        const arTranslations = translations.ar;
+        
+        const newConfigs: ServiceConfig[] = [];
+
+        Object.entries(SERVICE_TYPES).forEach(([key, config]) => {
+          const newDocRef = doc(collection(db, 'service_configs'));
+          const nameArKey = key as keyof typeof arTranslations;
+          const nameEnKey = key as keyof typeof enTranslations;
+
+          const newConfigData: Omit<ServiceConfig, 'id'> = {
+            name: key,
+            nameAr: arTranslations[nameArKey] || key,
+            nameEn: enTranslations[nameEnKey] || key,
+            userId: currentUserId,
+            ...config,
+          };
+          batch.set(newDocRef, newConfigData);
+          newConfigs.push({ ...newConfigData, id: newDocRef.id });
+        });
+
+        await batch.commit();
+        setServiceConfigs(newConfigs);
+        toast({ title: t('service-type-added-success')});
+        return newConfigs;
+      } else {
+         const configs = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...(doc.data() as Omit<ServiceConfig, 'id'>),
+        }));
+        setServiceConfigs(configs);
+        return configs;
+      }
+    } catch (error) {
+      console.error("Error loading service configs:", error);
+      toast({ title: t('service-type-updated-failed'), variant: "destructive" });
+      return [];
+    }
+  }, [toast, t]);
+
+  const addServiceConfig = async (config: Omit<ServiceConfig, 'id' | 'userId'>) => {
+    if (!user) return;
+    showLoading();
+    try {
+        const newConfig = { ...config, userId: user.uid };
+        await addDoc(collection(db, 'service_configs'), newConfig);
+        await loadServiceConfigs(user.uid);
+        toast({ title: t('service-type-added-success')});
+    } catch(e) {
+        console.error("Error adding service config:", e);
+        toast({ title: t('service-type-added-failed'), variant: "destructive"});
+    } finally {
+        hideLoading();
+    }
+  };
+
+  const updateServiceConfig = async (config: ServiceConfig) => {
+    if (!user) return;
+    showLoading();
+    try {
+        const { id, ...configData } = config;
+        await updateDoc(doc(db, 'service_configs', id), configData);
+        await loadServiceConfigs(user.uid);
+        toast({ title: t('service-type-updated-success')});
+    } catch(e) {
+        console.error("Error updating service config:", e);
+        toast({ title: t('service-type-updated-failed'), variant: "destructive"});
+    } finally {
+        hideLoading();
+    }
+  };
+  
+  const removeServiceConfig = async (id: string) => {
+    if (!user) return;
+    showLoading();
+    try {
+        await deleteDoc(doc(db, 'service_configs', id));
+        await loadServiceConfigs(user.uid);
+        toast({ title: t('service-type-removed-success')});
+    } catch(e) {
+        console.error("Error deleting service config:", e);
+        toast({ title: t('service-type-removed-failed'), variant: "destructive"});
+    } finally {
+        hideLoading();
+    }
+  };
 
   const login = async (email: string, password: string) => {
     showLoading();
@@ -84,7 +193,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       console.error(error);
       const firebaseError = error as { code?: string };
       let message = t('login-failed');
-      if (firebaseError.code === 'auth/invalid-credential') {
+      if (firebaseError.code === 'auth/invalid-credential' || firebaseError.code === 'auth/user-not-found' || firebaseError.code === 'auth/wrong-password') {
         message = t('login-failed');
       }
       toast({
@@ -100,6 +209,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
       await createUserWithEmailAndPassword(auth, email, password);
+      // onAuthStateChanged will handle the rest of the setup for the new user.
       toast({
         title: t('signup-success-title'),
         description: t('signup-success-description'),
@@ -130,6 +240,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setStaff([]);
       setServices([]);
       setAllServices([]);
+      setServiceConfigs([]);
     } catch (error) {
       console.error(error);
     } finally {
@@ -187,8 +298,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loadAllServices = useCallback(async (currentUserId: string) => {
-    showLoading();
+  const loadAllServices = useCallback(async (currentUserId: string): Promise<Service[]> => {
     try {
       const servicesCol = collection(db, 'services');
       const q = query(
@@ -212,8 +322,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toast({ title: 'Failed to load services data.', variant: 'destructive' });
       setAllServices([]);
       return [];
-    } finally {
-      hideLoading();
     }
   }, [toast]);
 
@@ -229,11 +337,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
       const now = new Date();
+      
       const serviceToSave: { [key: string]: any } = {
         ...serviceData,
         timestamp: Timestamp.fromDate(now),
       };
-     if (serviceToSave.paymentMethod === undefined) {
+
+      if (serviceToSave.paymentMethod === undefined) {
         delete serviceToSave.paymentMethod;
       }
 
@@ -245,16 +355,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
         timestamp: now.toISOString(),
       };
       
-      const updatedAllServices = [...allServices, newServiceForState];
+      const updatedAllServices = [newServiceForState, ...allServices];
       setAllServices(updatedAllServices);
 
       const dailyServices = updatedAllServices
-        .filter(service => isSameDay(new Date(service.timestamp), now))
+        .filter(service => isSameDay(new Date(service.timestamp), new Date()))
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       setServices(dailyServices);
 
       toast({ title: t('service-saved') });
-    } catch (error) {
+    } catch (error)
+    {
       console.error('Error adding service: ', error);
       toast({ title: 'Failed to save service', variant: 'destructive' });
     } finally {
@@ -285,43 +396,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
       hideLoading();
     }
   };
+  
+  const loadInitialData = useCallback(async (currentUser: User) => {
+    await loadStaff(currentUser.uid);
+    await loadServiceConfigs(currentUser.uid);
+    const loadedServices = await loadAllServices(currentUser.uid);
+    const todayServices = loadedServices
+      .filter(service => isSameDay(new Date(service.timestamp), new Date()))
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    setServices(todayServices);
+  }, [loadStaff, loadServiceConfigs, loadAllServices]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      try {
-        setIsLoading(true);
-        setUser(currentUser);
-        if (currentUser) {
-          await loadStaff(currentUser.uid);
-          const services = await loadAllServices(currentUser.uid);
-          const todayServices = services
-            .filter(service => isSameDay(new Date(service.timestamp), new Date()))
-            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-          setServices(todayServices);
-        } else {
-          setStaff([]);
-          setServices([]);
-          setAllServices([]);
-        }
-      } catch (error) {
-        console.error("Error during auth state change:", error);
-        // Ensure user is logged out and data is cleared on error
-        setUser(null);
+      setIsLoading(true);
+      setUser(currentUser);
+
+      if (currentUser) {
+        await loadInitialData(currentUser);
+      } else {
         setStaff([]);
         setServices([]);
         setAllServices([]);
-      } finally {
-        setIsInitialized(true);
-        setIsLoading(false);
+        setServiceConfigs([]);
       }
+      setIsInitialized(true);
+      setIsLoading(false);
     });
-
+    
     if (typeof window !== 'undefined' && !document.documentElement.lang) {
       setLanguage('ar');
     }
 
     return () => unsubscribe();
-  }, [setLanguage, loadStaff, loadAllServices]);
+  }, [loadInitialData, setLanguage]);
+
 
   const value = {
     language,
@@ -342,6 +451,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     submitSupportTicket,
     isLoading,
     isInitialized,
+    serviceConfigs,
+    addServiceConfig,
+    updateServiceConfig,
+    removeServiceConfig,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
