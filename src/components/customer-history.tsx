@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useApp } from '@/hooks/use-app';
 import type { Service } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -36,10 +36,16 @@ interface CustomerData {
 }
 
 export function CustomerHistory() {
-  const { t, language, allServices, serviceConfigs } = useApp();
+  const { t, language, allServices, serviceConfigs, loadAllServices } = useApp();
   const [searchContact, setSearchContact] = useState('');
   const [showAll, setShowAll] = useState(false);
   const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (allServices.length === 0) {
+      loadAllServices();
+    }
+  }, [allServices, loadAllServices]);
 
   const processedCustomers = useMemo((): CustomerData[] => {
     const customerMap = new Map<string, Service[]>();
