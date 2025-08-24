@@ -14,7 +14,7 @@ import { format } from 'date-fns';
 import { arSA } from 'date-fns/locale';
 
 export function DailyReport() {
-  const { t, language, services, loadServicesForDate } = useApp();
+  const { t, language, services, loadServicesForDate, serviceConfigs } = useApp();
   const [date, setDate] = useState<Date | undefined>(new Date());
 
   const handleDateSelect = useCallback((selectedDate: Date | undefined) => {
@@ -50,9 +50,10 @@ export function DailyReport() {
   }, [services, language]);
 
   const getServiceTypeName = (s: Service) => {
-    const key = s.serviceType as keyof typeof import('@/lib/translations').translations.en;
-    const baseName = t(key) || s.serviceType;
-    return s.waxAddOn ? `${baseName} + ${t('wax-add-on')}` : baseName;
+    const config = serviceConfigs.find(c => c.name === s.serviceType);
+    const baseName = language === 'ar' ? config?.nameAr : config?.nameEn;
+    const name = baseName || s.serviceType;
+    return s.waxAddOn ? `${name} + ${t('wax-add-on')}` : name;
   };
 
   const getCarSizeName = (carSizeId: string | null) => {
@@ -60,8 +61,8 @@ export function DailyReport() {
     const key = `${carSizeId}-car` as keyof typeof import('@/lib/translations').translations.en;
     return t(key) || carSizeId;
   };
-
- const getPaymentMethodName = (s: Service) => {
+  
+  const getPaymentMethodName = (s: Service) => {
     if (!s.isPaid) return t('payment-status-not-paid');
     if (s.hasCoupon) return t('coupon-label');
     if (!s.paymentMethod) return '-';
@@ -69,7 +70,6 @@ export function DailyReport() {
     return t(key) || s.paymentMethod;
   }
 
-  
   const exportToCsv = () => {
     const headers = [
       t('table-header-time'), t('table-header-service'), t('table-header-size'),
@@ -84,7 +84,7 @@ export function DailyReport() {
       s.customerContact || '',
       language === 'ar' ? s.staffName : s.staffNameEn,
       s.price,
-     s.commission,
+      s.commission,
       getPaymentMethodName(s)
     ].join(','));
 
@@ -176,7 +176,7 @@ export function DailyReport() {
                     <TableCell>{getCarSizeName(s.carSize)}</TableCell>
                     <TableCell>{s.customerContact || '-'}</TableCell>
                     <TableCell>{language === 'ar' ? s.staffName : s.staffNameEn}</TableCell>
-                     <TableCell>{getPaymentMethodName(s)}</TableCell>
+                    <TableCell>{getPaymentMethodName(s)}</TableCell>
                     <TableCell className="text-right">{s.price}</TableCell>
                     <TableCell className="text-right">{s.commission}</TableCell>
                   </TableRow>
