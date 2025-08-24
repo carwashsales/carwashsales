@@ -14,8 +14,14 @@ import { format } from 'date-fns';
 import { arSA } from 'date-fns/locale';
 
 export function DailyReport() {
-  const { t, language, services, loadServicesForDate, serviceConfigs } = useApp();
+  const { t, language, services, loadServicesForDate, serviceConfigs, allServices, loadAllServices } = useApp();
   const [date, setDate] = useState<Date | undefined>(new Date());
+  
+  useEffect(() => {
+    if (allServices.length === 0) {
+      loadAllServices();
+    }
+  },[allServices, loadAllServices]);
 
   const handleDateSelect = useCallback((selectedDate: Date | undefined) => {
     setDate(selectedDate);
@@ -28,7 +34,7 @@ export function DailyReport() {
     if (date) {
       loadServicesForDate(date);
     }
-  }, [date, loadServicesForDate]);
+  }, [date, loadServicesForDate, allServices]);
 
   const reportData = useMemo(() => {
     let totalSales = 0;
