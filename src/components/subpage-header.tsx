@@ -12,7 +12,7 @@ export function SubPageHeader() {
   return (
     <header className="sticky top-0 z-10 bg-card/80 backdrop-blur-sm shadow-sm">
       <div className="container mx-auto flex items-center justify-between p-4">
-        <Link href="/" passHref>
+        <Link href="/">
           <Button variant="outline">
             <ArrowLeft className="h-4 w-4" />
             <span>{t('back-to-app-btn')}</span>
