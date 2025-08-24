@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useState } from 'react';
 import { useApp } from '@/hooks/use-app';
 import type { ServiceConfig, ServicePrice } from '@/types';
-import { Header } from '@/components/header';
+import { SubPageHeader } from '@/components/subpage-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,6 +17,17 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -33,20 +45,24 @@ export default function ManageServicesPage() {
     setIsDialogOpen(true);
   };
   
-  const handleRemove = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this service type?')) {
-      removeServiceConfig(id);
+  const getServiceDisplayName = (config: ServiceConfig) => {
+    if (language === 'ar') {
+      return config.nameAr || config.name;
     }
+    return config.nameEn || config.name;
   };
 
   const ServiceTypeForm = ({ config, onFinished }: { config: ServiceConfig | null; onFinished: () => void }) => {
-    const [formData, setFormData] = useState<Partial<ServiceConfig>>(() => {
+    const [formData, setFormData] = useState<Omit<ServiceConfig, 'id' | 'userId'>>(() => {
       if (config) {
-        return { ...config };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, userId, ...rest } = config;
+        return rest;
       }
       return {
-        id: '',
         name: '',
+        nameAr: '',
+        nameEn: '',
         needsSize: false,
         hasCoupon: false,
         prices: { default: { price: 0, commission: 0 } },
@@ -70,19 +86,10 @@ export default function ManageServicesPage() {
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       
-      const { id, ...dataToSave } = formData;
-      const finalData: any = { ...dataToSave };
-      
-      // Add service name translations
-      if (formData.name) {
-          translations.ar[formData.name as keyof typeof translations.ar] = formData.nameAr;
-          translations.en[formData.name as keyof typeof translations.en] = formData.nameEn;
-      }
-      
       if (isNew) {
-        await addServiceConfig(finalData);
-      } else if (id) {
-        await updateServiceConfig({ ...finalData, id });
+        await addServiceConfig(formData);
+      } else if (config) {
+        await updateServiceConfig({ ...formData, id: config.id, userId: config.userId });
       }
       onFinished();
     };
@@ -91,16 +98,16 @@ export default function ManageServicesPage() {
       <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto p-2">
         <div className="space-y-2">
           <Label htmlFor="service-name">{t('service-name-label')}</Label>
-          <Input id="service-name" value={formData.name} onChange={e => setFormData(p => ({...p, name: e.target.value, id: e.target.value}))} placeholder={t('service-name-placeholder')} required disabled={!isNew} />
+          <Input id="service-name" value={formData.name} onChange={e => setFormData(p => ({...p, name: e.target.value.toLowerCase().replace(/\s+/g, '-')}))} placeholder={t('service-name-placeholder')} required disabled={!isNew} />
         </div>
         <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="service-name-arabic">{t('service-name-arabic-label')}</Label>
-              <Input id="service-name-arabic" value={(translations.ar as any)[formData.name || ''] || ''} onChange={e => (translations.ar as any)[formData.name || ''] = e.target.value} placeholder={t('service-name-arabic-placeholder')} />
+              <Input id="service-name-arabic" value={formData.nameAr} onChange={e => setFormData(p => ({...p, nameAr: e.target.value}))} placeholder={t('service-name-arabic-placeholder')} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="service-name-english">{t('service-name-english-label')}</Label>
-              <Input id="service-name-english" value={(translations.en as any)[formData.name || ''] || ''} onChange={e => (translations.en as any)[formData.name || ''] = e.target.value} placeholder={t('service-name-english-placeholder')} />
+              <Input id="service-name-english" value={formData.nameEn} onChange={e => setFormData(p => ({...p, nameEn: e.target.value}))} placeholder={t('service-name-english-placeholder')} required />
             </div>
         </div>
 
@@ -130,15 +137,17 @@ export default function ManageServicesPage() {
           <div className="space-y-4 rounded-md border p-4">
             <h4 className="font-medium">{t('prices-for-sizes-label')}</h4>
             {carSizes.map(size => (
-              <div key={size} className="grid grid-cols-2 gap-x-4 gap-y-2">
-                 <div>
-                    <Label>{t('price-for-size-label').replace('{size}', t(`${size}-car`))}</Label>
-                    <Input type="number" value={formData.prices?.[size]?.price || ''} onChange={e => handlePriceChange(size, 'price', e.target.value)} />
-                  </div>
-                  <div>
-                    <Label>{t('commission-for-size-label').replace('{size}', t(`${size}-car`))}</Label>
-                    <Input type="number" value={formData.prices?.[size]?.commission || ''} onChange={e => handlePriceChange(size, 'commission', e.target.value)} />
-                  </div>
+              <div key={size} className="grid grid-cols-1 gap-y-2">
+                 <div className="grid grid-cols-2 gap-x-4">
+                    <div>
+                      <Label>{t('price-for-size-label').replace('{size}', t(`${size}-car`))}</Label>
+                      <Input type="number" value={formData.prices?.[size]?.price || ''} onChange={e => handlePriceChange(size, 'price', e.target.value)} />
+                    </div>
+                    <div>
+                      <Label>{t('commission-for-size-label').replace('{size}', t(`${size}-car`))}</Label>
+                      <Input type="number" value={formData.prices?.[size]?.commission || ''} onChange={e => handlePriceChange(size, 'commission', e.target.value)} />
+                    </div>
+                 </div>
                 {formData.hasCoupon && (
                    <div className="col-span-2">
                     <Label>{t('coupon-commission-label')} ({t(`${size}-car`)})</Label>
@@ -161,7 +170,7 @@ export default function ManageServicesPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
+      <SubPageHeader />
       <main className="container mx-auto flex-1 py-10">
         <Card>
           <CardHeader>
@@ -199,16 +208,34 @@ export default function ManageServicesPage() {
               <TableBody>
                 {serviceConfigs.map(config => (
                   <TableRow key={config.id}>
-                    <TableCell>{t(config.name as keyof typeof import('@/lib/translations').translations.en) || config.name}</TableCell>
-                    <TableCell>{config.needsSize ? 'Yes' : 'No'}</TableCell>
-                    <TableCell>{config.hasCoupon ? 'Yes' : 'No'}</TableCell>
+                    <TableCell>{getServiceDisplayName(config)}</TableCell>
+                    <TableCell>{config.needsSize ? t('yes-text') : t('no-text')}</TableCell>
+                    <TableCell>{config.hasCoupon ? t('yes-text') : t('no-text')}</TableCell>
                     <TableCell className="text-right">
                        <Button variant="ghost" size="icon" onClick={() => openDialog(config)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleRemove(config.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>{t('delete-service-type-title')}</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {t('delete-service-type-description')}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>{t('cancel-btn')}</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => removeServiceConfig(config.id)}>
+                              {t('delete-btn')}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))}
