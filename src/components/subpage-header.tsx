@@ -12,10 +12,12 @@ export function SubPageHeader() {
   return (
     <header className="sticky top-0 z-10 bg-card/80 backdrop-blur-sm shadow-sm">
       <div className="container mx-auto flex items-center justify-between p-4">
-        <Link href="/">
-          <Button variant="outline">
-            <ArrowLeft className="h-4 w-4" />
-            <span>{t('back-to-app-btn')}</span>
+        <Link href="/" legacyBehavior passHref>
+          <Button variant="outline" asChild>
+            <a>
+              <ArrowLeft className="h-4 w-4" />
+              <span>{t('back-to-app-btn')}</span>
+            </a>
           </Button>
         </Link>
         <div className="flex items-center gap-2">
