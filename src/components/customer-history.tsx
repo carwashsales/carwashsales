@@ -36,7 +36,7 @@ interface CustomerData {
 }
 
 export function CustomerHistory() {
-  const { t, language, allServices } = useApp();
+  const { t, language, allServices, serviceConfigs } = useApp();
   const [searchContact, setSearchContact] = useState('');
   const [showAll, setShowAll] = useState(false);
   const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set());
@@ -110,9 +110,10 @@ export function CustomerHistory() {
   };
 
   const getServiceTypeName = (s: Service) => {
-    const key = s.serviceType as keyof typeof import('@/lib/translations').translations.en;
-    const baseName = t(key) || s.serviceType;
-    return s.waxAddOn ? `${baseName} + ${t('wax-add-on')}` : baseName;
+    const config = serviceConfigs.find(c => c.name === s.serviceType);
+    const baseName = language === 'ar' ? config?.nameAr : config?.nameEn;
+    const name = baseName || s.serviceType;
+    return s.waxAddOn ? `${name} + ${t('wax-add-on')}` : name;
   };
   
   const getCarSizeName = (carSizeId: string | null) => {
