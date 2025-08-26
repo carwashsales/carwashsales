@@ -116,6 +116,7 @@ export const translations = {
     "wax-add-on": "إضافة شمع",
     "payment-status-not-paid": "غير مدفوع",
     "customer-history-title": "البحث في سجل العميل",
+    "customer-history-tab-text": "سجل العميل",
     "customer-history-description": "ابحث عن طريق رقم الاتصال لعرض سجل خدمات العميل.",
     "service-history-for": "سجل الخدمة لـ",
     "full-wash-count": "عدد الغسلات الكاملة المدفوعة",
@@ -130,6 +131,7 @@ export const translations = {
     "whatsapp-bulk-message": "مرحباً! لدينا عروض جديدة ومميزة في مغسلة السيارات. نتطلع لزيارتكم قريباً!",
     "service-management-title": "إدارة الخدمات",
     "manage-services-btn": "إدارة أنواع الخدمات",
+    "manage-services-tab-text": "إدارة الخدمات",
     "service-types-page-title": "إدارة أنواع الخدمات",
     "service-types-page-description": "إضافة، تحرير، أو حذف أنواع الخدمات والأسعار.",
     "add-new-service-type-btn": "إضافة نوع خدمة جديد",
@@ -167,7 +169,8 @@ export const translations = {
     "delete-service-type-title": "هل أنت متأكد؟",
     "delete-service-type-description": "هذا الإجراء لا يمكن التراجع عنه. سيتم حذف نوع الخدمة هذا نهائيًا.",
     "cancel-btn": "إلغاء",
-    "delete-btn": "حذف"
+    "delete-btn": "حذف",
+    "daily-report-tab-title": "التقرير اليومي"
   },
   en: {
     "app-title": "Car Wash Service",
@@ -285,6 +288,7 @@ export const translations = {
     "wax-add-on": "Wax Add-on",
     "payment-status-not-paid": "Not Paid",
     "customer-history-title": "Search Customer History",
+    "customer-history-tab-text": "Customer History",
     "customer-history-description": "Search by contact number to view a customer's service history.",
     "service-history-for": "Service History for",
     "full-wash-count": "Paid Full Washes",
@@ -299,6 +303,7 @@ export const translations = {
     "whatsapp-bulk-message": "Hello! We have new and exciting offers at our car wash. We look forward to your visit soon!",
     "service-management-title": "Service Management",
     "manage-services-btn": "Manage Service Types",
+    "manage-services-tab-text": "Manage Services",
     "service-types-page-title": "Manage Service Types",
     "service-types-page-description": "Add, edit, or delete service types and their pricing.",
     "add-new-service-type-btn": "Add New Service Type",
@@ -336,10 +341,10 @@ export const translations = {
     "delete-service-type-title": "Are you sure?",
     "delete-service-type-description": "This action cannot be undone. This will permanently delete the service type.",
     "cancel-btn": "Cancel",
-    "delete-btn": "Delete"
+    "delete-btn": "Delete",
+    "daily-report-tab-title": "Daily Report"
   }
 }
 
 export type Language = keyof typeof translations;
 
-    
