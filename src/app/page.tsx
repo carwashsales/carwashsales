@@ -1,11 +1,56 @@
 
 'use client';
 
-// This component is now much simpler.
-// The main logic is in the root layout.
-// This page component will only be rendered for authenticated users.
+import { useState } from 'react';
+import { useApp } from '@/hooks/use-app';
+import { LoginForm } from '@/components/login-form';
+import { SignUpForm } from '@/components/signup-form';
 import { CarWashApp } from '@/components/car-wash-app';
+import { LoadingOverlay } from '@/components/loading-overlay';
+import Link from 'next/link';
+import { Header } from '@/components/header';
+import { usePathname } from 'next/navigation';
+import SettingsPage from './settings/page';
+import PrivacyPolicyPage from './privacy-policy/page';
+
+
+type AuthView = 'login' | 'signup';
 
 export default function Home() {
-  return <CarWashApp />;
+  const { isAuthenticated, isLoading, isInitialized } = useApp();
+  const [authView, setAuthView] = useState<AuthView>('login');
+  const pathname = usePathname();
+
+  if (!isInitialized || isLoading) {
+    return <LoadingOverlay />;
+  }
+
+  const renderAuth = () => {
+    if (authView === 'login') {
+      return <LoginForm onSwitchView={() => setAuthView('signup')} />;
+    }
+    return <SignUpForm onSwitchView={() => setAuthView('login')} />;
+  };
+  
+  if (!isAuthenticated) {
+     if (pathname === '/privacy-policy') {
+        return <PrivacyPolicyPage/>
+     }
+     return renderAuth();
+  }
+  
+  if (pathname === '/settings') {
+    return <SettingsPage/>
+  }
+  
+  if (pathname === '/privacy-policy') {
+    return <PrivacyPolicyPage/>
+  }
+
+  return (
+    <>
+      <CarWashApp /> 
+    </>
+  );
 }
+
