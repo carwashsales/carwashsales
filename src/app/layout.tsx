@@ -5,48 +5,20 @@ import './globals.css';
 import { AppProvider, AppContext } from '@/contexts/app-context';
 import { Toaster } from '@/components/ui/toaster';
 import { useContext } from 'react';
-import { LoadingOverlay } from '@/components/loading-overlay';
-import { CarWashApp } from '@/components/car-wash-app';
-import { LoginForm } from '@/components/login-form';
-import { SignUpForm } from '@/components/signup-form';
-import { useState } from 'react';
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const context = useContext(AppContext);
-  const [authView, setAuthView] = useState<'login' | 'signup'>('login');
 
   if (!context) {
-    return <LoadingOverlay />;
+    // This can be a simple loading spinner or null
+    return (
+       <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
+      </div>
+    );
   }
-
-  const { isInitialized, isLoading, isAuthenticated } = context;
-
-  if (!isInitialized || isLoading) {
-    return <LoadingOverlay />;
-  }
-
-  const renderAuth = () => {
-    if (authView === 'login') {
-      return <LoginForm onSwitchView={() => setAuthView('signup')} />;
-    }
-    return <SignUpForm onSwitchView={() => setAuthView('login')} />;
-  };
-
-  if (!isAuthenticated) {
-    // Allow access to privacy policy even when not logged in
-    if (typeof window !== 'undefined' && window.location.pathname.includes('/privacy-policy')) {
-      return <>{children}</>;
-    }
-    return renderAuth();
-  }
-
-  // If authenticated, allow access to settings or other pages
-   if (typeof window !== 'undefined' && (window.location.pathname.includes('/settings') || window.location.pathname.includes('/privacy-policy'))) {
-     return <>{children}</>;
-   }
-
-  // For any other authenticated route, show the main dashboard
-  return <CarWashApp />;
+  
+  return <>{children}</>;
 }
 
 
