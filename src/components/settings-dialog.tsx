@@ -15,9 +15,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LogOut, User, PlusCircle, Trash2, Wrench } from 'lucide-react';
+import { LogOut, User, PlusCircle, Trash2 } from 'lucide-react';
 import type { Language } from '@/lib/translations';
-import Link from 'next/link';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 interface SettingsDialogProps {
@@ -68,20 +67,6 @@ export function SettingsDialog({ isOpen, onOpenChange }: SettingsDialogProps) {
                     </SelectContent>
                   </Select>
                 </div>
-              </AccordionContent>
-            </AccordionItem>
-            
-            <AccordionItem value="service-management">
-              <AccordionTrigger className="text-lg font-medium">{t('service-management-title')}</AccordionTrigger>
-              <AccordionContent>
-                 <div className="space-y-3 pt-2">
-                    <Link href="/settings/services" passHref>
-                      <Button onClick={() => onOpenChange(false)} className="w-full">
-                        <Wrench />
-                        {t('manage-services-btn')}
-                      </Button>
-                    </Link>
-                  </div>
               </AccordionContent>
             </AccordionItem>
             
