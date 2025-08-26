@@ -1,11 +1,12 @@
+
 'use client';
 
 import { useApp } from '@/hooks/use-app';
 import { Header } from '@/components/header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NewServiceForm } from '@/components/new-service-form';
-import { DailyReport } from '@/components/daily-report';
-import { CustomerHistory } from '@/components/customer-history';
+import { ReportsTab } from '@/components/reports-tab';
+import { ManageServices } from './manage-services';
 
 export function CarWashApp() {
   const { t } = useApp();
@@ -14,17 +15,20 @@ export function CarWashApp() {
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        <Tabs defaultValue="reports" className="container mx-auto py-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="reports">{t('reports-tab-text')}</TabsTrigger>
+        <Tabs defaultValue="new-service" className="container mx-auto py-6">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="new-service">{t('new-service-tab-text')}</TabsTrigger>
+            <TabsTrigger value="reports">{t('reports-tab-text')}</TabsTrigger>
+            <TabsTrigger value="manage-services">{t('manage-services-tab-text')}</TabsTrigger>
           </TabsList>
-          <TabsContent value="new-service" className="space-y-6">
+          <TabsContent value="new-service">
             <NewServiceForm />
           </TabsContent>
-          <TabsContent value="reports" className="space-y-6">
-            <DailyReport />
-            <CustomerHistory />
+          <TabsContent value="reports">
+            <ReportsTab />
+          </TabsContent>
+           <TabsContent value="manage-services">
+            <ManageServices />
           </TabsContent>
         </Tabs>
       </main>
